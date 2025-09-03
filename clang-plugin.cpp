@@ -8,6 +8,7 @@
 #include <clang/Tooling/Tooling.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 
+// what can an ASTConsumer do?
 class ClangPluginConsumer : public clang::ASTConsumer {};
 
 class ClangPluginAction : public clang::PluginASTAction {
