@@ -1,5 +1,0 @@
-g++ -fPIC -shared -I/usr/lib/llvm-18/include/ -L/usr/lib/llvm-18/lib -o libClangPlugin.so clang-plugin.cpp -lclangAST -lclangBasic -lclangFrontend -lclangSerialization -lclangTooling
-  (to build plugin)
-
-clang++ -fplugin=./libClangPlugin.so -fplugin-arg-ClangPlugin-hi -fplugin-arg-ClangPlugin-hello main.cpp
-  (to use plugin)

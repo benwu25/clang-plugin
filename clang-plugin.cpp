@@ -1,4 +1,3 @@
-// includes
 #include <memory>
 #include <iostream>
 #include <llvm/Support/Registry.h>
@@ -9,28 +8,18 @@
 #include <clang/Tooling/Tooling.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 
-// does the main work?
-class ClangPluginConsumer : public clang::ASTConsumer {
-public:
-  ClangPluginConsumer() {
-    std::cout << "Building ClangPluginConsumer\n";
-  }
-};
+class ClangPluginConsumer : public clang::ASTConsumer {};
 
 class ClangPluginAction : public clang::PluginASTAction {
 public:
-  // ClangPluginAction() {}
-
   std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
-                                                         clang::StringRef InFile) {
+                                                        clang::StringRef InFile) override {
     std::cout << "In CreateASTConsumer\n";
     return std::make_unique<ClangPluginConsumer>();
   }
 
-  bool ParseArgs(const clang::CompilerInstance& ci, const std::vector<std::string>& args) {
-    std::cout << "well hi!\n";
+  bool ParseArgs(const clang::CompilerInstance& ci, const std::vector<std::string>& args) override {
     for (int i = 0; i < args.size(); ++i) {
-        // are these compiler args?
       std::cout << "well hullo!\n";
     }
     return true;

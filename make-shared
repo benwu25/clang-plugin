@@ -1,3 +1,0 @@
-g++ -fPIC -c -o <file>.o <file>.cpp
-
-g++ -fPIC -shared -o lib<name>.so <obj1>.o <obj2>.o ...
