@@ -17,7 +17,7 @@ class ClangPluginConsumer : public clang::ASTConsumer {
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) {
     std::cout << "toplevel decl. Is DeclGroupRef gonna allow any mutation?\n";
     if (d.isSingleDecl()) {
-      clang::Decl *decl = d.getSingleDecl();
+      clang::Decl *decl = d.getSingleDecl(); // see clang/AST/DeclBase.h for interaction
       std::cout << "got single decl\n"; // two for 2 function definitions
                                         // (foo and main)
     }
