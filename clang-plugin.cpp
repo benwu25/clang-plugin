@@ -35,7 +35,7 @@ public:
 
   bool ParseArgs(const clang::CompilerInstance &ci,
                  const std::vector<std::string> &args) override {
-    for (int i = 0; i < args.size(); ++i) {
+    for (auto &arg : args) {
       // do something
     }
     return true;
