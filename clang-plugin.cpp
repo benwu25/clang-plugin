@@ -3,6 +3,7 @@
 #include <llvm/Support/Registry.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclGroup.h>
+#include <clang/AST/Decl.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendAction.h>
@@ -15,11 +16,19 @@ class ClangPluginConsumer : public clang::ASTConsumer {
   // Override functions to get callbacks?
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) {
-    std::cout << "toplevel decl. Is DeclGroupRef gonna allow any mutation?\n";
     if (d.isSingleDecl()) {
       clang::Decl *decl = d.getSingleDecl(); // see clang/AST/DeclBase.h for interaction
       std::cout << "got single decl\n"; // two for 2 function definitions
                                         // (foo and main)
+      clang::Stmt *body = decl->getBody();
+      if (body != nullptr) {
+        // how to get name, not this
+        std::cout << decl->getDeclKindName() << " has a body\n";
+        if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
+          std::cout << "is a named decl\n"; // twice again.
+          std::cout << "  name: " << named->getDeclName().getAsString() << "\n";
+        }
+      }
     }
     return true;
   }
