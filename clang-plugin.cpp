@@ -1,6 +1,7 @@
 #include <memory>
 #include <iostream>
 #include <llvm/Support/Registry.h>
+#include <llvm/Transforms/IPO/GlobalDCE.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclGroup.h>
 #include <clang/AST/Decl.h>
@@ -11,9 +12,13 @@
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/CodeGen/ModuleBuilder.h>
 
-class ClangPluginConsumer : public clang::CodeGenerator { // extend different kinds of ASTConsumer to do different things?
+// CodeGenerator is building the Module... probably can't interact with it
+class ClangPluginConsumer : public clang::CodeGenerator {
 
-  virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) {
+  virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) override {
+    llvm::Module *the_module = this->GetModule();
+    llvm::GlobalDCEPass global_dce{};
+
     if (d.isSingleDecl()) {
       clang::Decl *decl = d.getSingleDecl();
       if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
@@ -27,6 +32,7 @@ class ClangPluginConsumer : public clang::CodeGenerator { // extend different ki
     }
     return true;
   }
+
 };
 
 class ClangPluginAction : public clang::PluginASTAction {
@@ -46,7 +52,7 @@ public:
   }
 
   clang::PluginASTAction::ActionType getActionType() override {
-    return clang::PluginASTAction::ActionType::AddBeforeMainAction;
+    return clang::PluginASTAction::ActionType::AddAfterMainAction;
   }
 };
 
