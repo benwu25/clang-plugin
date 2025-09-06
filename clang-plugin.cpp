@@ -9,25 +9,20 @@
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/Tooling/Tooling.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
+#include <clang/CodeGen/ModuleBuilder.h>
 
-// what can an ASTConsumer do?
-class ClangPluginConsumer : public clang::ASTConsumer {
-
-  // Override functions to get callbacks?
+class ClangPluginConsumer : public clang::CodeGenerator { // extend different kinds of ASTConsumer to do different things?
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) {
     if (d.isSingleDecl()) {
-      clang::Decl *decl = d.getSingleDecl(); // see clang/AST/DeclBase.h for interaction
-      std::cout << "got single decl\n"; // two for 2 function definitions
-                                        // (foo and main)
+      clang::Decl *decl = d.getSingleDecl();
+      if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
+        std::cout << "name: " << named->getDeclName().getAsString() << "\n";
+      }
       clang::Stmt *body = decl->getBody();
       if (body != nullptr) {
-        // how to get name, not this
-        std::cout << decl->getDeclKindName() << " has a body\n";
-        if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
-          std::cout << "is a named decl\n"; // twice again.
-          std::cout << "  name: " << named->getDeclName().getAsString() << "\n";
-        }
+        body->dump();
+        clang::StmtIterator it = body->child_begin();
       }
     }
     return true;
