@@ -19,6 +19,8 @@ class ClangPluginConsumer : public clang::CodeGenerator {
     llvm::Module *the_module = this->GetModule();
     llvm::GlobalDCEPass global_dce{};
 
+    clang::CodeGen::CodeGenModule &cgm = this->CGM();
+
     if (d.isSingleDecl()) {
       clang::Decl *decl = d.getSingleDecl();
       if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
