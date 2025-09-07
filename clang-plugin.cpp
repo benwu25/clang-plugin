@@ -2,6 +2,7 @@
 #include <iostream>
 #include <llvm/Support/Registry.h>
 #include <llvm/Transforms/IPO/GlobalDCE.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclGroup.h>
 #include <clang/AST/Decl.h>
@@ -11,28 +12,19 @@
 #include <clang/Tooling/Tooling.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/CodeGen/ModuleBuilder.h>
+#include "my-pass.h"
 
-// CONSUMER NOTES
-// CodeGenerator is building the Module... probably can't interact with it?
-//  - use debug build to check when your CodeGenerator is build  (break at CreateLLVMCodeGen to see what order and how many)
-// As of late 2024, there's CIR stuff. llvm-18 didn't have that. CodeGenerator
-// was the lowest Consumer available in llvm-18 headers.
-class ClangPluginConsumer : public clang::CodeGenerator {
+class ClangPluginConsumer : public clang::ASTConsumer {
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) override {
-    llvm::Module *the_module = this->GetModule(); // built or not?
-    llvm::GlobalDCEPass global_dce{};
-
-    clang::CodeGen::CodeGenModule &cgm = this->CGM();
-
     if (d.isSingleDecl()) {
       clang::Decl *decl = d.getSingleDecl();
       if (clang::NamedDecl *named = dynamic_cast<clang::NamedDecl *>(decl)) {
-        std::cout << "name: " << named->getDeclName().getAsString() << "\n";
+        // std::cout << "name: " << named->getDeclName().getAsString() << "\n";
       }
       clang::Stmt *body = decl->getBody();
       if (body != nullptr) {
-        body->dump();
+        // body->dump();
         clang::StmtIterator it = body->child_begin();
       }
     }
@@ -46,19 +38,27 @@ public:
   std::unique_ptr<clang::ASTConsumer>
   CreateASTConsumer(clang::CompilerInstance &CI,
                     clang::StringRef InFile) override {
+    llvm::errs() << "registering MyPass...\n";
+    clang::CodeGenOptions &cgo = CI.getCodeGenOpts();
+    cgo.PassBuilderCallbacks.push_back(
+        [](llvm::PassBuilder &PB) {
+          PB.registerPipelineStartEPCallback(
+              [](llvm::ModulePassManager &MPM, llvm::OptimizationLevel Level) {
+                MPM.addPass(llvm::MyPass{});
+              }
+          );
+        }
+    );
     return std::make_unique<ClangPluginConsumer>();
   }
 
-  bool ParseArgs(const clang::CompilerInstance &ci,
-                 const std::vector<std::string> &args) override {
-    for (auto &arg : args) {
-      // do something
-    }
+  bool ParseArgs(const clang::CompilerInstance &CI,
+                 const std::vector<std::string> &Args) override {
     return true;
   }
 
   clang::PluginASTAction::ActionType getActionType() override {
-    return clang::PluginASTAction::ActionType::AddAfterMainAction;
+    return clang::PluginASTAction::ActionType::AddBeforeMainAction;
   }
 };
 
