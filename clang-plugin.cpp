@@ -12,11 +12,15 @@
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/CodeGen/ModuleBuilder.h>
 
-// CodeGenerator is building the Module... probably can't interact with it
+// CONSUMER NOTES
+// CodeGenerator is building the Module... probably can't interact with it?
+//  - use debug build to check when your CodeGenerator is build  (break at CreateLLVMCodeGen to see what order and how many)
+// As of late 2024, there's CIR stuff. llvm-18 didn't have that. CodeGenerator
+// was the lowest Consumer available in llvm-18 headers.
 class ClangPluginConsumer : public clang::CodeGenerator {
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef d) override {
-    llvm::Module *the_module = this->GetModule();
+    llvm::Module *the_module = this->GetModule(); // built or not?
     llvm::GlobalDCEPass global_dce{};
 
     clang::CodeGen::CodeGenModule &cgm = this->CGM();
