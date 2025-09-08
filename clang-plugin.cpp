@@ -40,15 +40,16 @@ public:
                     clang::StringRef InFile) override {
     llvm::errs() << "registering MyPass...\n";
     clang::CodeGenOptions &cgo = CI.getCodeGenOpts();
+
+    auto pipeline_start = [](llvm::ModulePassManager &MPM, llvm::OptimizationLevel Level) {
+      MPM.addPass(llvm::MyPass{});
+    };
     cgo.PassBuilderCallbacks.push_back(
-        [](llvm::PassBuilder &PB) {
-          PB.registerPipelineStartEPCallback(
-              [](llvm::ModulePassManager &MPM, llvm::OptimizationLevel Level) {
-                MPM.addPass(llvm::MyPass{});
-              }
-          );
+        [=](llvm::PassBuilder &PB) {
+          PB.registerPipelineStartEPCallback(pipeline_start);
         }
     );
+
     return std::make_unique<ClangPluginConsumer>();
   }
 
